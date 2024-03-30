@@ -9,7 +9,6 @@ import org.openqa.selenium.chrome.ChromeOptions;
 public class DriverManager {
 
     private static ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
-    private Utils utils;
 
     public static WebDriver getDriver() {
         return driverThreadLocal.get();

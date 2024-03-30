@@ -2,8 +2,8 @@
 <suite name="ParallelTests" verbose="1" parallel="classes" thread-count="2">
     <test name="test">
         <classes>
-            <class name="mrrobot.tests.AustraliaTest"/>
-            <class name="mrrobot.tests.BaliTest"/>
+            <class name="tests.AustraliaTest"/>
+            <class name="tests.BaliTest"/>
         </classes>
     </test>
 </suite>

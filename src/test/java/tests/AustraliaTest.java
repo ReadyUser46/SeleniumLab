@@ -1,4 +1,4 @@
-package mrrobot.tests;
+package tests;
 
 import mrrobot.base.Base;
 import mrrobot.core.DriverManager;

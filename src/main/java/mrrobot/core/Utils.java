@@ -1,21 +1,20 @@
-package mrrobot;
+package mrrobot.core;
 
 import lombok.SneakyThrows;
 import org.openqa.selenium.WebDriver;
 
 public class Utils {
 
-    protected WebDriver driver;
+    private static final WebDriver driver = DriverManager.getDriver();
 
-/*    public Utils(WebDriver driver) {
-        this.driver = driver;
-    }*/
-
-    public Utils() {
-        driver = DriverManager.getDriver();
+    private Utils() {
     }
 
-    public String printUrlUtils(){
+    public static WebDriver getWebdriver() {
+        return driver;
+    }
+
+    public static String printUrlUtils() {
         return driver.getCurrentUrl();
     }
 

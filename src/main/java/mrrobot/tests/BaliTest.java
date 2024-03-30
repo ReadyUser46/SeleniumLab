@@ -1,5 +1,9 @@
-package mrrobot;
+package mrrobot.tests;
 
+import mrrobot.base.Base;
+import mrrobot.core.DriverManager;
+import mrrobot.core.Utils;
+import mrrobot.pages.Page;
 import org.testng.annotations.Test;
 
 public class BaliTest extends Base {
@@ -17,8 +21,7 @@ public class BaliTest extends Base {
 
         System.out.printf("[TC2] Driver from drivermanager: %s%n", DriverManager.getDriver().hashCode());
         // System.out.printf("[TC2] Driver from instace: %s%n", Driver.getInstance().hashCode());
-        System.out.printf("[TC2] Driver from utils: %s%n", driverManager.getUtils().driver.hashCode());
-        System.out.printf("[TC2] Driver from page: %s%n", page.driver.hashCode());
+        System.out.printf("[TC2] Driver from utils: %s%n", Utils.getWebdriver().hashCode());
 
         System.out.println("------- URL ---------");
         System.out.printf("[TC2] Driver from instace: %s%n", DriverManager.getDriver().getCurrentUrl());

@@ -1,12 +1,13 @@
-package mrrobot;
+package mrrobot.base;
 
+import mrrobot.core.DriverManager;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
 public class Base {
 
-    private final String targetUrl;
     protected DriverManager driverManager;
+    private final String targetUrl;
     private final String tcName;
 
     public Base(String tcName, String targetUrl) {
@@ -23,9 +24,7 @@ public class Base {
         driverManager
                 .initDriver()
                 .get(targetUrl)
-                .minimize()
-                .initUtils();
-
+                .minimize();
     }
 
     @AfterMethod(alwaysRun = true)

@@ -1,4 +1,4 @@
-package mrrobot;
+package mrrobot.core;
 
 import lombok.Data;
 import org.openqa.selenium.WebDriver;
@@ -28,7 +28,6 @@ public class DriverManager {
         options.addArguments("--disable-gpu");
         setDriver(new ChromeDriver());
 
-//        Driver.setDriverInstance(driver);
         return this;
     }
 
@@ -45,10 +44,6 @@ public class DriverManager {
     public DriverManager minimize() {
         getDriver().manage().window().minimize();
         return this;
-    }
-
-    public void initUtils() {
-        setUtils(new Utils());
     }
 
     public void releaseDriver() {

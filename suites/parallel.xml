@@ -2,12 +2,12 @@
 <suite name="Parallel Tests" verbose="1" parallel="tests" thread-count="2">
     <test name="Test 1 Execution">
         <classes>
-            <class name="mrrobot.AustraliaTest"/>
+            <class name="mrrobot.tests.AustraliaTest"/>
         </classes>
     </test>
     <test name="Test 2 Execution">
         <classes>
-            <class name="mrrobot.BaliTest"/>
+            <class name="mrrobot.tests.BaliTest"/>
         </classes>
     </test>
 </suite>

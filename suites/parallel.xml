@@ -1,0 +1,13 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="Parallel Tests" verbose="1" parallel="tests" thread-count="2">
+    <test name="Test 1 Execution">
+        <classes>
+            <class name="mrrobot.AustraliaTest"/>
+        </classes>
+    </test>
+    <test name="Test 2 Execution">
+        <classes>
+            <class name="mrrobot.BaliTest"/>
+        </classes>
+    </test>
+</suite>

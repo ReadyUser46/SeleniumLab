@@ -5,17 +5,17 @@ import org.openqa.selenium.WebDriver;
 
 public class Utils {
 
-    private static final WebDriver driver = DriverManager.getDriver();
+    private static final ThreadLocal<WebDriver> driverThreadLocal = DriverManager.getDriverThreadLocal();
 
     private Utils() {
     }
 
     public static WebDriver getWebdriver() {
-        return driver;
+        return driverThreadLocal.get();
     }
 
     public static String printUrlUtils() {
-        return driver.getCurrentUrl();
+        return driverThreadLocal.get().getCurrentUrl();
     }
 
     @SneakyThrows

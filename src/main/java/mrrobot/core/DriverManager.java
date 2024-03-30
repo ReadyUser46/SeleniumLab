@@ -1,6 +1,7 @@
 package mrrobot.core;
 
 import lombok.Data;
+import lombok.Getter;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -8,6 +9,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 @Data
 public class DriverManager {
 
+    @Getter
     private static ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
 
     public static WebDriver getDriver() {

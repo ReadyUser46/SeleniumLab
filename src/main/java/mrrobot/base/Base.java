@@ -1,6 +1,7 @@
 package mrrobot.base;
 
 import mrrobot.core.DriverManager;
+import mrrobot.pages.Page;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
@@ -30,5 +31,11 @@ public class Base {
     @AfterMethod(alwaysRun = true)
     public void tearDown() {
         driverManager.releaseDriver();
+    }
+
+
+    //init page
+    protected Page getPage() {
+        return new Page();
     }
 }

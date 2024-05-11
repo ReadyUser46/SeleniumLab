@@ -1,4 +1,4 @@
-package mrrobot;
+package mrrobot.front;
 
 import lombok.SneakyThrows;
 import org.openqa.selenium.WebDriver;

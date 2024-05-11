@@ -1,5 +1,6 @@
-package mrrobot;
-
+import mrrobot.front.Base;
+import mrrobot.front.DriverManager;
+import mrrobot.front.Page;
 import org.testng.annotations.Test;
 
 public class AustraliaTest extends Base {

@@ -1,4 +1,4 @@
-package mrrobot;
+package mrrobot.front;
 
 public class Page extends Utils {
 

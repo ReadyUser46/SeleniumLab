@@ -1,4 +1,4 @@
-package mrrobot;
+package mrrobot.front;
 
 import lombok.Data;
 import org.openqa.selenium.WebDriver;

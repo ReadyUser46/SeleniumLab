@@ -1,13 +1,6 @@
 package mrrobot.autodriver.core;
 
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import io.restassured.http.Method;
-import io.restassured.response.Response;
-import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
-import mrrobot.autodriver.apiclient.core.RestAssuredLite;
-import mrrobot.autodriver.apiclient.models.ResponseModel;
 import mrrobot.autodriver.common.enums.Browser;
 import mrrobot.autodriver.common.enums.Version;
 import mrrobot.autodriver.common.model.DriverDetail;
@@ -16,115 +9,170 @@ import java.io.*;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
-@AllArgsConstructor
 public class DriverDownloader {
 
-    private DriverDetail driverDetail;
-    private Browser browser;
-    private String version;
+    private final DriverDetail driverDetail;
+    private String outputZip;
+    private String targetUrl;
+
+    private DriverDownloader(DriverDetail driverDetail) {
+        this.driverDetail = driverDetail;
+        setAttributes();
+    }
 
     public static DriverDownloader getInstance(DriverDetail driverDetail) {
         return new DriverDownloader(driverDetail);
     }
 
-    public static void main(String[] args) {
-        // URL del archivo a descargar
-        String url = "https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.91/win64/chromedriver_win64.zip";
+    //---------------------------------------------------
 
-        // Realizar solicitud HTTP GET usando RestAssured
-        Response response = RestAssured.get(url);
+    private void setAttributes() {
 
-        // Verificar si la solicitud fue exitosa (código de estado 200)
-        if (response.getStatusCode() == 200) {
-            try {
-                // Abrir conexión al archivo remoto
-                URL fileUrl = new URL(url);
-                InputStream inputStream = fileUrl.openStream();
+        Browser browserX = driverDetail.getBrowser();
+        String versionX = getTargetVersion(browserX);
+        driverDetail.setCustomVersion(versionX);
+        String basePathX = browserX.getUrl();
+        String arch = driverDetail.getArch();
+        String os = driverDetail.getOsName();
+        String fileName = String.format("%s_%s%s.zip", browserX.getDriverName(), os, arch); //todo to path
+        outputZip = driverDetail.getOutputDir() + fileName;
 
-                // Crear un flujo de salida para escribir el archivo
-                OutputStream outputStream = new FileOutputStream("chromedriver_win32.zip");
-
-                // Leer los datos del archivo remoto y escribirlos en el archivo local
-                byte[] buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
-
-                // Cerrar flujos
-                inputStream.close();
-                outputStream.close();
-
-                System.out.println("Archivo descargado correctamente.");
-            } catch (IOException e) {
-                System.out.println("Error al descargar el archivo: " + e.getMessage());
-            }
-        } else {
-            System.out.println("No se pudo descargar el archivo. Código de estado: " + response.getStatusCode());
+        switch (browserX) {
+            case CHROME:
+                targetUrl = String.format("%s/%s/%s%s/%s", basePathX, versionX, os, arch, fileName);
+                break;
+            case EDGE:
+                //https://msedgedriver.azureedge.net/100.0.1158.0/edgedriver_arm64.zip
+                targetUrl = String.format("%s/%s/%s", basePathX, versionX, fileName);
+                break;
+            case FIREFOX:
+                //todo dev
+                break;
         }
+
     }
 
-    private void setBrowser() {
-        browser = driverDetail.getBrowser();
-    }
-
-    private void setVersion() {
+    private String getTargetVersion(Browser browser) {
 
         if (driverDetail.getVersion().equals(Version.CUSTOM)) {
             String customV = driverDetail.getCustomVersion();
-            if (customV != null) version = customV;
+            if (customV != null) return customV;
             else throw new IllegalArgumentException("Custom version not specified in the builder");
         }
 
         if (driverDetail.getVersion().equals(Version.INSTALLED)) {
-            switch (browser) {
+            return switch (browser) {
                 case CHROME -> getLocalChromeVersion();
                 case EDGE -> getLocalEdgeVersion();
                 case FIREFOX -> getLocalChromeVersion(); //todo dev;
-            }
+            };
         }
+
+        return "";
     }
 
-    public DriverDownloader downloadChromeDriver() {
+    public DriverDownloader downloadWebDriver() {
 
-        setBrowser();
-        setVersion();
+        System.out.printf("[LOGGER] Downloading driver: browser = %s, version = %s%n", driverDetail.getBrowser(), driverDetail.getCustomVersion());
 
+        File existingZip = new File(outputZip);
+        if (existingZip.exists()) {
 
-        String file = "/win64/chromedriver_win64.zip";
+            System.out.println("[WARNING] zip file already exists: " + outputZip);
+            System.out.println("[LOGGER] Deleting file and retrying...");
 
-        String target = browser.getUrl() + version + file;
+            if (!existingZip.delete()) System.out.println("[WARNING] zip file could not be removed");
+        }
 
         try {
-            // Abrir conexión al archivo remoto
-            URL fileUrl = new URL(target);
+            URL fileUrl = new URL(targetUrl);
             InputStream inputStream = fileUrl.openStream();
 
-            // Crear un flujo de salida para escribir el archivo
-            OutputStream outputStream = new FileOutputStream("chromedriver_win4.zip");
+            OutputStream outputStream = new FileOutputStream(outputZip);
 
-            // Leer los datos del archivo remoto y escribirlos en el archivo local
             byte[] buffer = new byte[1024];
             int bytesRead;
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
             }
 
-            // Cerrar flujos
             inputStream.close();
             outputStream.close();
 
-            System.out.println("Archivo descargado correctamente.");
+            System.out.println("[LOGGER] Webdriver susccessfully downaloed: " + outputZip);
         } catch (IOException e) {
-            System.out.println("Error al descargar el archivo: " + e.getMessage());
+            System.out.println("[FAILURE] Error downloading file: \n" + e.getMessage() + System.lineSeparator());
         }
 
-
+        return this;
     }
 
     @SneakyThrows
-    public String getLocalChromeVersion() {
+    public DriverDownloader extractDriverExe() {
+
+        System.out.println("[LOGGER] Extracting driver executable from .zip...");
+
+        File outputFolder = new File(driverDetail.getOutputDir());
+
+        byte[] buffer = new byte[1024];
+        ZipInputStream zis = new ZipInputStream(new FileInputStream(outputZip));
+        ZipEntry zipEntry = zis.getNextEntry();
+
+        while (zipEntry != null) {
+
+            if (zipEntry.getName().endsWith("driver.exe")) {
+                File driverExe = createDriverExe(outputFolder, zipEntry);
+
+                FileOutputStream fos = new FileOutputStream(driverExe);
+                int len;
+                while ((len = zis.read(buffer)) > 0) {
+                    fos.write(buffer, 0, len);
+                }
+                fos.close();
+                break;
+
+            } else {
+                zipEntry = zis.getNextEntry();
+            }
+
+        }
+
+        zis.closeEntry();
+        zis.close();
+
+        return this;
+    }
+
+    public void cleanUpDir() {
+
+        System.out.println("[LOGGER] Cleaning up output dir...");
+
+
+        File f = new File(outputZip);
+        if (!f.delete()) System.out.println("[WARNING] zip file could not be deleted: " + outputZip);
+    }
+
+    //---------------------------------------------------
+
+    @SneakyThrows
+    private File createDriverExe(File destinationDir, ZipEntry zipEntry) {
+        File destFile = new File(destinationDir, zipEntry.getName());
+
+        String destDirPath = destinationDir.getCanonicalPath();
+        String destFilePath = destFile.getCanonicalPath();
+
+        if (!destFilePath.startsWith(destDirPath + File.separator)) {
+            throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
+        }
+
+        return destFile;
+    }
+
+    @SneakyThrows
+    private String getLocalChromeVersion() {
         // Comando para obtener la versión del navegador Chrome en Windows
         Process process = Runtime.getRuntime().exec("reg query \"HKEY_CURRENT_USER\\Software\\Google\\Chrome\\BLBeacon\" /v version");
 
@@ -138,21 +186,23 @@ public class DriverDownloader {
         return null;
     }
 
-    @SneakyThrows
     public String getLocalEdgeVersion() {
-        // Comando para obtener la versión del navegador Chrome en Windows
-        Process process = Runtime.getRuntime().exec("reg query \"HKEY_CURRENT_USER\\Software\\Google\\Chrome\\BLBeacon\" /v version");
-
-        String outputStr = getString(process);
-        Pattern pattern = Pattern.compile("version\\s+REG_SZ\\s+(\\S+)");
-        Matcher matcher = pattern.matcher(outputStr);
-        if (matcher.find()) {
-            return matcher.group(1);
+        String version = "";
+        try {
+            Process process = Runtime.getRuntime().exec("reg query HKCU\\Software\\Microsoft\\Edge\\BLBeacon /v version");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains("version")) {
+                    String[] parts = line.split("\\s+");
+                    version = parts[parts.length - 1];
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        return null;
+        return version;
     }
-
 
     private static String getString(Process process) throws IOException {
         InputStream inputStream = process.getInputStream();
@@ -172,29 +222,5 @@ public class DriverDownloader {
 
         // Extraer la versión del navegador Chrome
         return output.toString();
-    }
-
-    public DriverDownloader setBrowser(Browser browser) {
-        this.browser = browser;
-        return this;
-    }
-
-    public DriverDownloader setLocalPath(String path) {
-        this.localPath = path;
-        return this;
-    }
-
-    public ResponseModel downloadDriver() {
-
-        String vBrowser = "";
-        if (version.equals(Version.INSTALLED)) {
-            vBrowser = getChromeVersion();
-        }
-
-        return RestAssuredLite.getInstance(true)
-                .setContentType(ContentType.BINARY)
-                .setBaseUri("https://storage.googleapis.com/chrome-for-testing-public/")
-                .sendRequest(Method.GET, "{version}/win64/chromedriver-win64.zip", vBrowser)
-                .getResponseModel();
     }
 }

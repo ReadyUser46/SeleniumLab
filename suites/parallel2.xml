@@ -3,7 +3,7 @@
     <test name="test">
         <classes>
             <class name="AustraliaTest"/>
-            <class name="BaliTest"/>
+            <class name="DriverDownloadTest"/>
         </classes>
     </test>
 </suite>
